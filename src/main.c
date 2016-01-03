@@ -9,18 +9,12 @@ static GFont s_time_font;
 static GBitmap *s_bitmap;
 static BitmapLayer *s_bitmap_layer;
 
+static bool bluetooth_connected = false;
+static GBitmap *s_connected_bitmap;
+static GBitmap *s_notconnected_bitmap;
+static BitmapLayer *s_connection_bitmap_layer;
+
 static TextLayer *s_battery_layer;
-
-const ResHandle s_images[] = {
-  resource_get_handle(RESOURCE_ID_JAYHAWK_CURRENT),
-  resource_get_handle(RESOURCE_ID_JAYHAWK_1912),
-  resource_get_handle(RESOURCE_ID_JAYHAWK_1920),
-  resource_get_handle(RESOURCE_ID_JAYHAWK_1929),
-  resource_get_handle(RESOURCE_ID_JAYHAWK_1941),
-  resource_get_handle(RESOURCE_ID_JAYHAWK_HEAD)
-};
-
-static int s_image_count = sizeof(s_images) / sizeof(s_images[0]);
 
 static void update_time() {
   // Get a tm structure
@@ -30,8 +24,8 @@ static void update_time() {
   // Write the current hours and minutes into a buffer
   static char time_buffer[12];
   strftime(time_buffer, sizeof(time_buffer), clock_is_24h_style() ?
-                                          "%H:%M" : "%I:%M %p", tick_time);
-  
+                                          "%k:%M" : "%l:%M %p", tick_time);
+
   // Copy date into buffer from tm structure
   static char date_buffer[16];
   strftime(date_buffer, sizeof(date_buffer), "%a %b %e", tick_time);
@@ -51,18 +45,46 @@ static void battery_handler(BatteryChargeState state) {
   text_layer_set_text(s_battery_layer, buf);
 }
 
+static void random_image() {
+  gbitmap_destroy(s_bitmap);
+  
+  int image = rand() % 6;
+  if (image == 0) {
+    s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_JAYHAWK_CURRENT);
+  } else if (image == 1) {
+    s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_JAYHAWK_1912);
+  } else if (image == 1) {
+    s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_JAYHAWK_1920);
+  } else if (image == 1) {
+    s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_JAYHAWK_1929);
+  } else if (image == 1) {
+    s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_JAYHAWK_1941);
+  } else {
+    s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_JAYHAWK_HEAD);
+  }
+  
+  bitmap_layer_set_bitmap(s_bitmap_layer, s_bitmap);
+}
+
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
+  random_image();
 }
 
-static void randomImage() {
-  gbitmap_destroy(s_bitmap);
-  
-  int image = rand() % s_image_count;
-  
-  s_bitmap = gbitmap_create_with_resource(s_images[image]);
-  bitmap_layer_set_bitmap(s_bitmap_layer, s_bitmap);
+void update_connection() {
+  if (bluetooth_connected) {
+    bitmap_layer_set_bitmap(s_connection_bitmap_layer, s_connected_bitmap);
+  } else {
+    bitmap_layer_set_bitmap(s_connection_bitmap_layer, s_notconnected_bitmap);
+  }
+}
+
+static void bluetooth_handler(bool connected) {
+  if (bluetooth_connected != connected) {
+    bluetooth_connected = connected;
+    update_connection();
+  }
 }
 
 static void main_window_load(Window *window) {
@@ -78,9 +100,14 @@ static void main_window_load(Window *window) {
   bitmap_layer_set_alignment(s_bitmap_layer, GAlignTop); 
   layer_add_child(window_layer, bitmap_layer_get_layer(s_bitmap_layer));
   
+  s_connection_bitmap_layer = bitmap_layer_create( GRect(bounds.size.w - 25, 5, 25, 14) );
+  layer_add_child(window_layer, bitmap_layer_get_layer(s_connection_bitmap_layer));
+  s_connected_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BLUETOOTH_CONNECTED);
+  s_notconnected_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BLUETOOTH_NOTCONNECTED);
+  
   // Create the TextLayer with specific bounds
   s_battery_layer = text_layer_create(
-      GRect(5, 5, bounds.size.w, 14));
+      GRect(5, 5, 25, 14));
   s_date_layer = text_layer_create(
       GRect(0, bounds.size.h - 15, bounds.size.w, 14));
   s_time_layer = text_layer_create(
@@ -115,7 +142,7 @@ static void main_window_load(Window *window) {
   layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_battery_layer));
   
-  randomImage();
+  random_image();
 }
 
 static void main_window_unload(Window *window) {
@@ -130,9 +157,12 @@ static void main_window_unload(Window *window) {
   
   // Destroy GBitmap
   gbitmap_destroy(s_bitmap);
-
+  gbitmap_destroy(s_connected_bitmap);
+  gbitmap_destroy(s_notconnected_bitmap);
+  
   // Destroy BitmapLayer
   bitmap_layer_destroy(s_bitmap_layer);
+  bitmap_layer_destroy(s_connection_bitmap_layer);
 }
 
 static void init() {
@@ -158,6 +188,9 @@ static void init() {
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
   
   battery_state_service_subscribe(battery_handler);
+  
+  bluetooth_connection_service_subscribe(&bluetooth_handler);
+  bluetooth_handler(bluetooth_connection_service_peek()); // initialize
 }
 
 static void deinit() {

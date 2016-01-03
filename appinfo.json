@@ -9,6 +9,20 @@
     "resources": {
         "media": [
             {
+                "file": "images/bluetooth_notconnected.png",
+                "name": "BLUETOOTH_NOTCONNECTED",
+                "storageFormat": "png",
+                "targetPlatforms": null,
+                "type": "bitmap"
+            },
+            {
+                "file": "images/bluetooth_connected.png",
+                "name": "BLUETOOTH_CONNECTED",
+                "storageFormat": "png",
+                "targetPlatforms": null,
+                "type": "bitmap"
+            },
+            {
                 "file": "images/jayhawk_head.png",
                 "name": "JAYHAWK_HEAD",
                 "storageFormat": "png",
