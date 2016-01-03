@@ -9,15 +9,17 @@ static GFont s_time_font;
 static GBitmap *s_bitmap;
 static BitmapLayer *s_bitmap_layer;
 
+static TextLayer *s_battery_layer;
+
 static void update_time() {
   // Get a tm structure
   time_t temp = time(NULL);
   struct tm *tick_time = localtime(&temp);
 
   // Write the current hours and minutes into a buffer
-  static char time_buffer[8];
+  static char time_buffer[12];
   strftime(time_buffer, sizeof(time_buffer), clock_is_24h_style() ?
-                                          "%H:%M" : "%I:%M", tick_time);
+                                          "%H:%M" : "%I:%M %p", tick_time);
   
   // Copy date into buffer from tm structure
   static char date_buffer[16];
@@ -27,6 +29,17 @@ static void update_time() {
   text_layer_set_text(s_time_layer, time_buffer);
   text_layer_set_text(s_date_layer, date_buffer);
 }
+
+static void battery_handler(BatteryChargeState state) {
+  static char buf[16];
+  if (state.is_charging) {
+    snprintf(buf, sizeof(buf), "CHRG");
+  } else {
+    snprintf(buf, sizeof(buf), "%d%%", state.charge_percent);
+  }
+  text_layer_set_text(s_battery_layer, buf);
+}
+
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
@@ -48,12 +61,18 @@ static void main_window_load(Window *window) {
   layer_add_child(window_layer, bitmap_layer_get_layer(s_bitmap_layer));
   
   // Create the TextLayer with specific bounds
+  s_battery_layer = text_layer_create(
+      GRect(5, 5, bounds.size.w, 14));
   s_date_layer = text_layer_create(
       GRect(0, bounds.size.h - 15, bounds.size.w, 14));
   s_time_layer = text_layer_create(
       GRect(0, bounds.size.h - 15 - 28, bounds.size.w, 28));
   
   // Improve the layout to be more like a watchface
+  text_layer_set_background_color(s_battery_layer, GColorClear);
+  text_layer_set_text_color(s_battery_layer, GColorYellow);
+  text_layer_set_text(s_battery_layer, "100%");
+  
   text_layer_set_background_color(s_date_layer, GColorClear);
   text_layer_set_text_color(s_date_layer, GColorBlue);
   text_layer_set_text(s_date_layer, "Mon Jan 01");
@@ -76,13 +95,14 @@ static void main_window_load(Window *window) {
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_layer, text_layer_get_layer(s_date_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
-
+  layer_add_child(window_layer, text_layer_get_layer(s_battery_layer));
 }
 
 static void main_window_unload(Window *window) {
   // Destroy TextLayers
   text_layer_destroy(s_date_layer);
   text_layer_destroy(s_time_layer);
+  text_layer_destroy(s_battery_layer);
   
   // Unload GFonts
   fonts_unload_custom_font(s_date_font);
@@ -111,8 +131,13 @@ static void init() {
   // Make sure the time is displayed from the start
   update_time();
   
+  // Make sure battery level displayed at startup
+  battery_handler(battery_state_service_peek());
+  
   // Register with TickTimerService
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+  
+  battery_state_service_subscribe(battery_handler);
 }
 
 static void deinit() {
