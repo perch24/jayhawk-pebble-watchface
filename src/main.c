@@ -11,6 +11,17 @@ static BitmapLayer *s_bitmap_layer;
 
 static TextLayer *s_battery_layer;
 
+const ResHandle s_images[] = {
+  resource_get_handle(RESOURCE_ID_JAYHAWK_CURRENT),
+  resource_get_handle(RESOURCE_ID_JAYHAWK_1912),
+  resource_get_handle(RESOURCE_ID_JAYHAWK_1920),
+  resource_get_handle(RESOURCE_ID_JAYHAWK_1929),
+  resource_get_handle(RESOURCE_ID_JAYHAWK_1941),
+  resource_get_handle(RESOURCE_ID_JAYHAWK_HEAD)
+};
+
+static int s_image_count = sizeof(s_images) / sizeof(s_images[0]);
+
 static void update_time() {
   // Get a tm structure
   time_t temp = time(NULL);
@@ -45,17 +56,24 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
 }
 
+static void randomImage() {
+  gbitmap_destroy(s_bitmap);
+  
+  int image = rand() % s_image_count;
+  
+  s_bitmap = gbitmap_create_with_resource(s_images[image]);
+  bitmap_layer_set_bitmap(s_bitmap_layer, s_bitmap);
+}
+
 static void main_window_load(Window *window) {
-  window_set_background_color(window, GColorBlack);
+  window_set_background_color(window, GColorWhite);
   
   // Get information about the Window
   Layer *window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
 
   // Display the Jayhawk image
-  s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_JAYHAWK_CURRENT);
   s_bitmap_layer = bitmap_layer_create(bounds);
-  bitmap_layer_set_bitmap(s_bitmap_layer, s_bitmap);
   bitmap_layer_set_compositing_mode(s_bitmap_layer, GCompOpSet);
   bitmap_layer_set_alignment(s_bitmap_layer, GAlignTop); 
   layer_add_child(window_layer, bitmap_layer_get_layer(s_bitmap_layer));
@@ -70,7 +88,7 @@ static void main_window_load(Window *window) {
   
   // Improve the layout to be more like a watchface
   text_layer_set_background_color(s_battery_layer, GColorClear);
-  text_layer_set_text_color(s_battery_layer, GColorYellow);
+  text_layer_set_text_color(s_battery_layer, GColorBlack);
   text_layer_set_text(s_battery_layer, "100%");
   
   text_layer_set_background_color(s_date_layer, GColorClear);
@@ -96,6 +114,8 @@ static void main_window_load(Window *window) {
   layer_add_child(window_layer, text_layer_get_layer(s_date_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_battery_layer));
+  
+  randomImage();
 }
 
 static void main_window_unload(Window *window) {

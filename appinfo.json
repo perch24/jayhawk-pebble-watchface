@@ -9,6 +9,51 @@
     "resources": {
         "media": [
             {
+                "file": "images/jayhawk_head.png",
+                "name": "JAYHAWK_HEAD",
+                "storageFormat": "png",
+                "targetPlatforms": [
+                    "basalt"
+                ],
+                "type": "bitmap"
+            },
+            {
+                "file": "images/jayhawk_1912.png",
+                "name": "JAYHAWK_1912",
+                "storageFormat": "png",
+                "targetPlatforms": [
+                    "basalt"
+                ],
+                "type": "bitmap"
+            },
+            {
+                "file": "images/jayhawk_1920.png",
+                "name": "JAYHAWK_1920",
+                "storageFormat": "png",
+                "targetPlatforms": [
+                    "basalt"
+                ],
+                "type": "bitmap"
+            },
+            {
+                "file": "images/jayhawk_1929.png",
+                "name": "JAYHAWK_1929",
+                "storageFormat": "png",
+                "targetPlatforms": [
+                    "basalt"
+                ],
+                "type": "bitmap"
+            },
+            {
+                "file": "images/jayhawk_1941.png",
+                "name": "JAYHAWK_1941",
+                "storageFormat": "png",
+                "targetPlatforms": [
+                    "basalt"
+                ],
+                "type": "bitmap"
+            },
+            {
                 "file": "fonts/trajan-bold-14.ttf",
                 "name": "TRAJAN_BOLD_14",
                 "targetPlatforms": null,
