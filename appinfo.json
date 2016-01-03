@@ -1,0 +1,45 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "perch24@gmail.com",
+    "longName": "Jayhawk",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "file": "fonts/trajan-bold-14.ttf",
+                "name": "TRAJAN_BOLD_14",
+                "targetPlatforms": null,
+                "type": "font"
+            },
+            {
+                "file": "fonts/trajan-bold-28.ttf",
+                "name": "TRAJAN_BOLD_28",
+                "targetPlatforms": null,
+                "type": "font"
+            },
+            {
+                "file": "images/jayhawk-current.png",
+                "name": "JAYHAWK_CURRENT",
+                "storageFormat": "png",
+                "targetPlatforms": [
+                    "basalt",
+                    "chalk"
+                ],
+                "type": "bitmap"
+            }
+        ]
+    },
+    "sdkVersion": "3",
+    "shortName": "Jayhawk",
+    "targetPlatforms": [
+        "basalt"
+    ],
+    "uuid": "5f49c29d-9c84-462c-a662-d5ae1b8f6e1e",
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": true
+    }
+}
