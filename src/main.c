@@ -16,6 +16,8 @@ static BitmapLayer *s_connection_bitmap_layer;
 
 static TextLayer *s_battery_layer;
 
+static int current_image = 0;
+
 static void update_time() {
   // Get a tm structure
   time_t temp = time(NULL);
@@ -45,31 +47,36 @@ static void battery_handler(BatteryChargeState state) {
   text_layer_set_text(s_battery_layer, buf);
 }
 
-static void random_image() {
+static void update_image() {
   gbitmap_destroy(s_bitmap);
   
-  int image = rand() % 6;
-  if (image == 0) {
+  if (current_image == 0) {
     s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_JAYHAWK_CURRENT);
-  } else if (image == 1) {
+  } else if (current_image == 1) {
     s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_JAYHAWK_1912);
-  } else if (image == 1) {
+  } else if (current_image == 2) {
     s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_JAYHAWK_1920);
-  } else if (image == 1) {
+  } else if (current_image == 3) {
     s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_JAYHAWK_1929);
-  } else if (image == 1) {
+  } else if (current_image == 4) {
     s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_JAYHAWK_1941);
   } else {
     s_bitmap = gbitmap_create_with_resource(RESOURCE_ID_JAYHAWK_HEAD);
   }
   
   bitmap_layer_set_bitmap(s_bitmap_layer, s_bitmap);
+  
+  if (current_image == 5) {
+    current_image = 0;
+  } else {
+    current_image++;
+  }
 }
 
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
-  random_image();
+  update_image();
 }
 
 void update_connection() {
@@ -142,7 +149,7 @@ static void main_window_load(Window *window) {
   layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_battery_layer));
   
-  random_image();
+  update_image();
 }
 
 static void main_window_unload(Window *window) {
